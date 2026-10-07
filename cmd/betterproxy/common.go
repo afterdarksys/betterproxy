@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/afterdarksys/betterproxy/pkg/cloud"
 	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 	"github.com/afterdarksys/betterproxy/pkg/ml"
 	"github.com/afterdarksys/betterproxy/pkg/rules"
@@ -59,6 +60,12 @@ var (
 	analyzerSpecs    []string
 	analyzerTimeout  time.Duration
 	analyzerMaxBytes int64
+
+	cloudCheckURL     string
+	cloudSubmitURL    string
+	cloudPrivacy      string
+	cloudTimeout      time.Duration
+	cloudAllowPrivate bool
 )
 
 // addRuntimeFlags registers the flags shared by every rule-executing command.
@@ -98,6 +105,12 @@ func addRuntimeFlags(cmd *cobra.Command) {
 	f.StringSliceVar(&analyzerSpecs, "analyzer", nil, "Analysis sidecar as name=URL; repeatable (POST /v1/analyze)")
 	f.DurationVar(&analyzerTimeout, "analyzer-timeout", 30*time.Second, "Maximum duration for each analysis sidecar")
 	f.Int64Var(&analyzerMaxBytes, "analyzer-max-bytes", 26214400, "Maximum RFC 822 message size sent to an analyzer (0 disables limit)")
+
+	f.StringVar(&cloudCheckURL, "cloud-check-url", "", "betterspam /api/v1/mail/check URL (enables cloud spam/phish verdicts)")
+	f.StringVar(&cloudSubmitURL, "cloud-submit-url", "", "betterphish /api/v1/submit/email URL (async feed enrichment)")
+	f.StringVar(&cloudPrivacy, "cloud-privacy", "full", "Cloud privacy mode: full | headers | hash")
+	f.DurationVar(&cloudTimeout, "cloud-timeout", cloud.DefaultTimeout, "Per-call cloud timeout budget")
+	f.BoolVar(&cloudAllowPrivate, "cloud-allow-private", false, "Allow cloud endpoints on private/loopback addresses (dev/testing)")
 }
 
 // runtime holds the resources built from the shared flags.
@@ -109,6 +122,7 @@ type runtime struct {
 	clamav    *clamAVScanner
 	yara      *yaraScanner
 	analyzers []*analyzerClient
+	cloud     *cloud.Client
 }
 
 // buildRuntime constructs the shared resources, failing closed on any
@@ -186,6 +200,21 @@ func buildRuntime() (*runtime, error) {
 		rt.lists[name] = entries
 	}
 
+	if cloudCheckURL != "" {
+		client, err := cloud.New(cloud.Config{
+			CheckURL:          cloudCheckURL,
+			SubmitURL:         cloudSubmitURL,
+			APIKey:            os.Getenv("BETTERPROXY_CLOUD_TOKEN"),
+			Timeout:           cloudTimeout,
+			PrivacyMode:       cloudPrivacy,
+			AllowPrivateHosts: cloudAllowPrivate,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("cloud: %w", err)
+		}
+		rt.cloud = client
+	}
+
 	return rt, nil
 }
 
@@ -227,6 +256,7 @@ func (rt *runtime) engineOptions(filename string) rules.Options {
 	opts.Timeout = scriptTimeout
 	opts.Models = rt.models
 	opts.BertTokenizer = rt.bert
+	opts.Cloud = rt.cloud
 	return opts
 }
 

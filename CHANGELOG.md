@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-10-07
+
+Forked from `mailscript` and rebranded to **betterproxy**, adding first-class
+integration with the betterspam/betterphish cloud.
+
+### Added
+- Cloud integration package `pkg/cloud`: a synchronous spam/phish verdict from
+  betterspam `/api/v1/mail/check` and best-effort asynchronous feed enrichment
+  to betterphish `/api/v1/submit/email`. The HTTP client refuses redirects and,
+  by default, private/loopback/link-local destinations (SSRF defense).
+- Starlark builtins `betterspam_check()`, `betterphish_submit()` and
+  `cloud_available()` (registry now 270 builtins).
+- Shared flags `--cloud-check-url`, `--cloud-submit-url`, `--cloud-privacy`
+  (`full`|`headers`|`hash`), `--cloud-timeout`, `--cloud-allow-private`, and the
+  `BETTERPROXY_CLOUD_TOKEN` env var (sent as `X-API-Key`).
+- `examples/betterproxy-cloud.star`: strips forgeable inbound verdict headers,
+  scores against the cloud, stamps `X-BetterSpam-Status` / `X-BetterPhish-Verdict`
+  / `X-BetterProxy-Action`, and acts on the recommendation.
+
+### Changed
+- Project, binary and module renamed `mailscript` → `betterproxy`. Env vars use
+  the `BETTERPROXY_*` prefix; legacy `MAILSCRIPT_*` names remain honored.
+- Quarantine control header renamed to `X-BetterProxy-Quarantine`; the legacy
+  `X-MailScript-Quarantine` is still stripped from inbound mail.
+
+### Security
+- Cloud verdicts fail **open**: any cloud error or timeout accepts the message
+  and marks it `X-BetterProxy-Cloud: unavailable`, so a cloud outage never stalls
+  mail. Inbound `X-BetterSpam-*` / `X-BetterPhish-*` / `X-BetterProxy-*` markup is
+  stripped before trusted headers are stamped.
+
 ## [1.0.0] - 2026-09-07
 
 First numbered release. Everything below was previously shipped only as

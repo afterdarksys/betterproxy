@@ -15,7 +15,7 @@ cd betterproxy
 
 ## What it does
 
-- **Rules in Starlark**, a Python-like language, with 262 mail-aware builtins.
+- **Rules in Starlark**, a Python-like language, with 270 mail-aware builtins.
 - **Header validation** covering RFC 5322 conformance, spoofing, and header
   injection.
 - **Real cryptographic verification** of SPF, DKIM, DMARC, ARC and DANE, computed

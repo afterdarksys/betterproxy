@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/afterdarksys/betterproxy/pkg/cloud"
 	"github.com/afterdarksys/betterproxy/pkg/ml"
 	"go.starlark.net/starlark"
 )
@@ -37,6 +38,10 @@ type Options struct {
 	// Print receives output from the Starlark print() builtin. When nil,
 	// print() writes to the message's log entries.
 	Print func(msg string)
+
+	// Cloud, when non-nil, enables the betterspam_check / betterphish_submit /
+	// cloud_available builtins that consult the betterspam/betterphish cloud.
+	Cloud *cloud.Client
 }
 
 // Execution limits applied when Options leaves them unset.
@@ -280,6 +285,7 @@ func (e *scriptEnv) predeclared() starlark.StringDict {
 		e.listBuiltins,
 		e.mlBuiltins,
 		e.legacyBuiltins,
+		e.cloudBuiltins,
 	} {
 		for name, value := range group() {
 			dict[name] = value

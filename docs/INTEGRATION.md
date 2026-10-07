@@ -180,3 +180,52 @@ The API binds to loopback by default. Non-loopback binding requires a bearer tok
 via `BETTERPROXY_GRPC_TOKEN` (the legacy `MAILSCRIPT_GRPC_TOKEN` is still honored as a fallback) or `--grpc-auth-token`; use a protected transport because
 the gRPC listener does not terminate TLS. SMTP submission through this API is
 privileged access to the configured backend.
+
+## Cloud integration (betterspam / betterphish)
+
+BetterProxy can score every message against the betterspam/betterphish cloud and
+act on the verdict inline. Enable it by pointing the proxy (or `test`/`process`)
+at the betterspam check endpoint:
+
+    betterproxy proxy --upstream=mail-internal:25 \
+      --script=examples/betterproxy-cloud.star \
+      --cloud-check-url=https://betterspam.com/api/v1/mail/check \
+      --cloud-submit-url=https://www.betterphish.io/api/v1/submit/email \
+      --cloud-privacy=full
+
+Authentication uses the `BETTERPROXY_CLOUD_TOKEN` environment variable, sent as
+the `X-API-Key` header. When `--cloud-check-url` is unset the cloud builtins are
+inert and `cloud_available()` returns false.
+
+### Flags
+
+- `--cloud-check-url` — betterspam `/api/v1/mail/check` (synchronous verdict).
+- `--cloud-submit-url` — betterphish `/api/v1/submit/email` (async feed enrichment).
+- `--cloud-privacy` — `full` (raw message + parsed from/subject/body),
+  `headers` (header block only, no body; phishing URL extraction is skipped
+  cloud-side), or `hash` (no content leaves the proxy; the check is skipped and
+  the message fails open — reserved for a future hash-reputation endpoint).
+- `--cloud-timeout` — per-call budget (default 4s). On timeout the message fails open.
+- `--cloud-allow-private` — permit cloud endpoints on private/loopback addresses
+  (development only; off by default to defend against SSRF).
+
+### Builtins
+
+- `betterspam_check(user_id="", score=True)` → dict with `verdict`
+  (`CLEAN`|`SPAM`|`PHISH`|`BOTH`), `is_spam`, `is_phishing`, `spam_score`,
+  `max_score`, `action` (`pass`|`quarantine`|`reject`), `confidence`, `cloud_ok`
+  and `reason`. When `score` is true the spam score is folded into the running
+  message score.
+- `betterphish_submit()` → dispatches the message to the betterphish feed
+  asynchronously (best-effort); returns whether a submission was dispatched.
+- `cloud_available()` → whether a cloud endpoint is configured.
+
+### Fail-open and anti-forgery
+
+Cloud calls fail **open**: any error, non-2xx status or timeout yields a CLEAN,
+`cloud_ok=false` result so the policy accepts the message rather than blocking
+mail flow, and the message is marked `X-BetterProxy-Cloud: unavailable`. Because
+a sender can forge verdict headers, the example policy removes inbound
+`X-BetterSpam-*`, `X-BetterPhish-*` and `X-BetterProxy-*` headers before stamping
+its own. Headers are added above the body, never rewriting it, so a
+pass-through message's DKIM signature stays intact.
