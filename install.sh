@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo " MailScript Installer"
+echo " BetterProxy Installer"
 echo ""
 
 # Detect OS and architecture
@@ -37,8 +37,8 @@ echo " Install directory: $INSTALL_DIR"
 echo ""
 
 # Check if already installed
-if [ -f "$INSTALL_DIR/mailscript" ]; then
-    echo "WARNING:  MailScript is already installed at $INSTALL_DIR/mailscript"
+if [ -f "$INSTALL_DIR/betterproxy" ]; then
+    echo "WARNING:  BetterProxy is already installed at $INSTALL_DIR/betterproxy"
     read -p "Overwrite? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -50,7 +50,7 @@ fi
 # Build from source
 echo " Building from source..."
 if [ ! -f "./build.sh" ]; then
-    echo " build.sh not found. Are you in the mailscript directory?"
+    echo " build.sh not found. Are you in the betterproxy directory?"
     exit 1
 fi
 
@@ -59,20 +59,20 @@ chmod +x build.sh
 
 # Install binary
 echo " Installing to $INSTALL_DIR..."
-cp mailscript "$INSTALL_DIR/mailscript"
-chmod +x "$INSTALL_DIR/mailscript"
+cp betterproxy "$INSTALL_DIR/betterproxy"
+chmod +x "$INSTALL_DIR/betterproxy"
 
 # Verify installation
-if command -v mailscript &> /dev/null; then
+if command -v betterproxy &> /dev/null; then
     echo " Installation successful!"
     echo ""
-    mailscript --version || mailscript --help | head -5
+    betterproxy --version || betterproxy --help | head -5
     echo ""
     echo " Get started:"
-    echo "mailscript test --script=examples/spam-filter.star"
-    echo "mailscript --help"
+    echo "betterproxy test --script=examples/spam-filter.star"
+    echo "betterproxy --help"
 else
-    echo "WARNING:  Installation complete but mailscript not in PATH"
+    echo "WARNING:  Installation complete but betterproxy not in PATH"
     echo "Add to PATH: export PATH=\"$INSTALL_DIR:\$PATH\""
-    echo "Or run directly: $INSTALL_DIR/mailscript"
+    echo "Or run directly: $INSTALL_DIR/betterproxy"
 fi

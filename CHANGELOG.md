@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-09-07
 
 First numbered release. Everything below was previously shipped only as
-`mailscript:latest` builds reporting version `dev`.
+`betterproxy:latest` builds reporting version `dev`.
 
 ### Added
 - Starlark rule engine with mail-aware builtins, mbox/Maildir processing, JSON output and a gRPC interface that preserves original message bytes.

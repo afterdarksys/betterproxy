@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	mailscriptpb "github.com/afterdarksys/mailscript/pkg/proto"
+	betterproxypb "github.com/afterdarksys/betterproxy/pkg/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -15,7 +15,7 @@ import (
 func TestGRPCServiceProcessesMessage(t *testing.T) {
 	proxy := &SMTPProxy{script: "def evaluate():\n    accept()\n", scriptName: "test.star", stats: &ProxyStats{StartTime: time.Now()}}
 	service := &MailScriptServiceServer{proxy: proxy}
-	response, err := service.ProcessMessage(context.Background(), &mailscriptpb.ProcessRequest{
+	response, err := service.ProcessMessage(context.Background(), &betterproxypb.ProcessRequest{
 		From: "sender@example.com", To: []string{"recipient@example.net"},
 		Headers: map[string]string{"From": "sender@example.com", "Subject": "test"}, Body: "hello",
 	})
@@ -25,35 +25,35 @@ func TestGRPCServiceProcessesMessage(t *testing.T) {
 }
 
 func TestGRPCMessageRejectsHeaderInjection(t *testing.T) {
-	_, err := grpcMessage(&mailscriptpb.ProcessRequest{Headers: map[string]string{"Subject": "safe\r\nBcc: victim@example.net"}})
+	_, err := grpcMessage(&betterproxypb.ProcessRequest{Headers: map[string]string{"Subject": "safe\r\nBcc: victim@example.net"}})
 	if err == nil || !strings.Contains(err.Error(), "prohibited") {
 		t.Fatalf("expected header injection error, got %v", err)
 	}
 }
 
-// Threats: the SMTP proxy path (processWithMailScript, proxy.go) strips
-// X-MailScript-Quarantine before parsing precisely because it's a private
+// Threats: the SMTP proxy path (processWithBetterProxy, proxy.go) strips
+// X-BetterProxy-Quarantine before parsing precisely because it's a private
 // proxy-to-upstream control signal — a client that could set it and have it
 // honored could route its own mail wherever it wants post-quarantine, or
 // suppress quarantine handling entirely. The gRPC path takes the same kind
 // of untrusted caller-supplied headers and must apply the identical strip.
 func TestGRPCProcessMessageStripsClientSuppliedQuarantineHeader(t *testing.T) {
 	proxy := &SMTPProxy{
-		script:     "def evaluate():\n    if has_header(\"X-MailScript-Quarantine\"):\n        reject(\"quarantine header was not stripped\")\n    accept()\n",
+		script:     "def evaluate():\n    if has_header(\"X-BetterProxy-Quarantine\"):\n        reject(\"quarantine header was not stripped\")\n    accept()\n",
 		scriptName: "test.star",
 		stats:      &ProxyStats{StartTime: time.Now()},
 	}
 	service := &MailScriptServiceServer{proxy: proxy}
-	response, err := service.ProcessMessage(context.Background(), &mailscriptpb.ProcessRequest{
+	response, err := service.ProcessMessage(context.Background(), &betterproxypb.ProcessRequest{
 		From: "sender@example.com", To: []string{"recipient@example.net"},
-		Headers: map[string]string{"From": "sender@example.com", "X-MailScript-Quarantine": "true"},
+		Headers: map[string]string{"From": "sender@example.com", "X-BetterProxy-Quarantine": "true"},
 		Body:    "hello",
 	})
 	if err != nil {
 		t.Fatalf("ProcessMessage() error = %v", err)
 	}
 	if !response.Accepted {
-		t.Fatalf("client-supplied X-MailScript-Quarantine was not stripped: %+v", response)
+		t.Fatalf("client-supplied X-BetterProxy-Quarantine was not stripped: %+v", response)
 	}
 }
 
@@ -68,7 +68,7 @@ func TestGRPCProcessMessageDefaultsVirusStatusToUnknown(t *testing.T) {
 		stats:      &ProxyStats{StartTime: time.Now()},
 	}
 	service := &MailScriptServiceServer{proxy: proxy}
-	response, err := service.ProcessMessage(context.Background(), &mailscriptpb.ProcessRequest{
+	response, err := service.ProcessMessage(context.Background(), &betterproxypb.ProcessRequest{
 		From: "sender@example.com", To: []string{"recipient@example.net"},
 		Headers: map[string]string{"From": "sender@example.com"}, Body: "hello",
 	})

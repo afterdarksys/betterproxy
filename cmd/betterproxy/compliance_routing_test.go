@@ -27,7 +27,7 @@ func TestComplianceRouting(t *testing.T) {
 			backend := testBackend(t, "plain", false)
 			p := &SMTPProxy{upstreamServer: backend.address, script: tc.script, stats: &ProxyStats{}}
 			s := &SMTPSession{proxy: p, from: "sender@example.com", recipients: []string{"original@example.com", "colleague@example.com"}, data: []byte(raw)}
-			if ok, _, reason := s.processWithMailScript(); !ok {
+			if ok, _, reason := s.processWithBetterProxy(); !ok {
 				t.Fatalf("policy refused: %s", reason)
 			}
 			err := s.deliver(context.Background())

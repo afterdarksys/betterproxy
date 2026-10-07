@@ -5,7 +5,7 @@
 # a reply.
 #
 # Run with:
-#   mailscript test --script=examples/human-mail.star --eml=message.eml -v
+#   betterproxy test --script=examples/human-mail.star --eml=message.eml -v
 
 # Senders whose automated mail still belongs in the inbox: alerts you act on.
 URGENT_AUTOMATED = ["pagerduty.com", "opsgenie.com", "statuspage.io"]

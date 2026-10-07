@@ -21,7 +21,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 // SPF result values defined by RFC 7208 section 2.6.

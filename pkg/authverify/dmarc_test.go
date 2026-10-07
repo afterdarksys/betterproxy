@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 func TestVerifyDANECertificateMatchAndMismatch(t *testing.T) {

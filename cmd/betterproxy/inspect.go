@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var inspectCmd = &cobra.Command{
 	Use:   "inspect",
-	Short: "Report everything MailScript can determine about a message",
+	Short: "Report everything BetterProxy can determine about a message",
 	Long: `Parse a message and report header validation findings, sender
 authentication, human-versus-automated classification, URLs, and attachments.
 
@@ -21,13 +21,13 @@ or for triaging a suspicious message by hand.
 
 Examples:
   # Offline analysis: headers, content, classification
-  mailscript inspect --eml=message.eml
+  betterproxy inspect --eml=message.eml
 
   # Include cryptographic verification of SPF, DKIM and DMARC
-  mailscript inspect --eml=message.eml --verify --client-ip=192.0.2.1
+  betterproxy inspect --eml=message.eml --verify --client-ip=192.0.2.1
 
   # Read from a pipe
-  cat message.eml | mailscript inspect --json`,
+  cat message.eml | betterproxy inspect --json`,
 	RunE: runInspect,
 }
 

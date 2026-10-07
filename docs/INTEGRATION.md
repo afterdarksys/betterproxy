@@ -1,24 +1,24 @@
-# MailScript integration
+# BetterProxy integration
 
-MailScript owns filtering. The mail server owns relay authorization, its durable
+BetterProxy owns filtering. The mail server owns relay authorization, its durable
 queue, mailbox delivery, and user authentication. The common integration is SMTP;
 Postfix, Sendmail, qmail, Exim, and go-emailservice-ads can sit behind the same
-MailScript gateway. No platform-specific protocol is required for ordinary mail.
+BetterProxy gateway. No platform-specific protocol is required for ordinary mail.
 
 ## SMTP gateway
 
 ```sh
-mailscript proxy --script=examples/gateway.star \
+betterproxy proxy --script=examples/gateway.star \
   --listen=127.0.0.1 --port=3025 --upstream=127.0.0.1:2525
 ```
 
-Route inbound mail to MailScript and configure the backend on a separate private
+Route inbound mail to BetterProxy and configure the backend on a separate private
 listener. For a public perimeter, explicitly select the public bind address with
-`--listen`. Avoid routing the backend back through MailScript. Keep the backend's
+`--listen`. Avoid routing the backend back through BetterProxy. Keep the backend's
 recipient and relay checks enabled; trusting a filter connection must not grant
 permission to relay to arbitrary domains.
 
-MailScript returns success only after the backend accepts end-of-DATA. It has no
+BetterProxy returns success only after the backend accepts end-of-DATA. It has no
 local queue. Backend connection failures and script failures are temporary errors.
 Permanent backend rejections retain their status. SMTP recipients are validated
 against the same open backend transaction during the client's RCPT exchange, so
@@ -40,12 +40,12 @@ TLS. Both encrypted modes verify the certificate and hostname and require TLS
 certificate bypass or opportunistic downgrade.
 
 For a backend service account, configure `--upstream-user` and set
-`MAILSCRIPT_UPSTREAM_PASSWORD`. Credentials require encrypted backend transport.
+`BETTERPROXY_UPSTREAM_PASSWORD` (the legacy `MAILSCRIPT_UPSTREAM_PASSWORD` is still honored as a fallback). Credentials require encrypted backend transport.
 
 For end-user submission, run a separate instance:
 
 ```sh
-mailscript proxy --script=examples/gateway.star --port=3587 \
+betterproxy proxy --script=examples/gateway.star --port=3587 \
   --upstream=mail.internal:587 --upstream-tls=starttls \
   --enable-tls --cert=cert.pem --key=key.pem --submission
 ```
@@ -72,7 +72,7 @@ unacknowledged SMTP submissions remain the sender's responsibility.
 ## go-emailservice-ads quarantine
 
 The platform's `content_filter` configuration already implements the marker
-contract used by MailScript. Merge this into the platform configuration, using
+contract used by BetterProxy. Merge this into the platform configuration, using
 only the actual private proxy source addresses:
 
 ```yaml
@@ -80,19 +80,19 @@ content_filter:
   enabled: true
   trusted_proxy_networks:
     - 127.0.0.1/32
-  quarantine_header: X-MailScript-Quarantine
+  quarantine_header: X-BetterProxy-Quarantine
   quarantine_folder: Junk
 ```
 
-Run MailScript with the backend's actual private SMTP port:
+Run BetterProxy with the backend's actual private SMTP port:
 
 ```sh
-mailscript proxy --script=examples/gateway.star \
+betterproxy proxy --script=examples/gateway.star \
   --listen=127.0.0.1 --port=3025 --upstream=127.0.0.1:2525 \
   --forward-quarantine
 ```
 
-Client-supplied `X-MailScript-Quarantine` fields are removed. A policy quarantine
+Client-supplied `X-BetterProxy-Quarantine` fields are removed. A policy quarantine
 adds a fresh marker; the platform recognizes it only from a trusted filter peer,
 removes it, and durably holds the mail in its administrative quarantine queue.
 The configured folder is retained as quarantine metadata; immediate IMAP delivery
@@ -123,7 +123,7 @@ application to implement, including actions the generic SMTP gateway cannot run.
 ## Host delivery adapter
 
 Configure `--delivery-adapter=https://host.internal/filter-delivery` and optionally
-`MAILSCRIPT_DELIVERY_TOKEN`. HTTPS is required except for loopback HTTP. Startup
+`BETTERPROXY_DELIVERY_TOKEN` (the legacy `MAILSCRIPT_DELIVERY_TOKEN` is still honored as a fallback). HTTPS is required except for loopback HTTP. Startup
 fetches `GET /v1/capabilities` from that base URL:
 
 ```json
@@ -131,11 +131,11 @@ fetches `GET /v1/capabilities` from that base URL:
 ```
 
 The configured host must advertise `accept` and every delivery action it can
-execute. If a policy asks for an unadvertised action, MailScript defers without
+execute. If a policy asks for an unadvertised action, BetterProxy defers without
 submitting the plan. Header edits and log actions are already applied locally;
 other actions, including tags and scanner/DLP controls, require host support.
 
-MailScript posts one JSON delivery plan to `POST /v1/deliver`:
+BetterProxy posts one JSON delivery plan to `POST /v1/deliver`:
 
 ```json
 {"version":1,"id":"sha256-delivery-key","from":"sender@example.com","to":["user@example.com"],"message":"base64-rfc5322-bytes","actions":["fileinto:Inbox","auto_reply:Away"],"client_ip":"192.0.2.1","helo":"sender.example"}
@@ -146,7 +146,7 @@ must validate action arguments, durably commit all work or nothing, and persist
 receipts keyed by `id` so a retry cannot duplicate replies, copies, or digests.
 The key derives from the envelope, processed message, and actions; connecting
 IP and HELO do not change it. The response must echo the ID and include a durable
-receipt before MailScript acknowledges success:
+receipt before BetterProxy acknowledges success:
 
 ```json
 {"id":"sha256-delivery-key","smtp_code":250,"receipt":"durable-job-123","reason":"Queued"}
@@ -177,6 +177,6 @@ still owns delivery and must implement returned actions. Existing field numbers
 and RPC methods are unchanged. The default gRPC receive limit is 4 MiB.
 
 The API binds to loopback by default. Non-loopback binding requires a bearer token
-via `MAILSCRIPT_GRPC_TOKEN` or `--grpc-auth-token`; use a protected transport because
+via `BETTERPROXY_GRPC_TOKEN` (the legacy `MAILSCRIPT_GRPC_TOKEN` is still honored as a fallback) or `--grpc-auth-token`; use a protected transport because
 the gRPC listener does not terminate TLS. SMTP submission through this API is
 privileged access to the configured backend.

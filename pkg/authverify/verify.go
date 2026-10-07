@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 // Input is everything the verifiers need about one message.
@@ -114,7 +114,7 @@ func Verify(resolver *dnsx.Resolver, input Input) *Result {
 // infrastructure and discard fields bearing any other.
 func (r *Result) AuthenticationResults(authservID string) string {
 	if authservID == "" {
-		authservID = "mailscript"
+		authservID = "betterproxy"
 	}
 
 	parts := []string{authservID}

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 // ARCSetResult is the cryptographic outcome for one ARC set (RFC 8617).

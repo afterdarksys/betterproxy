@@ -27,7 +27,7 @@ func TestPolicyModulesLoadFromRootDirectory(t *testing.T) {
 }
 
 // TestPolicyModulesLoadWithBareRelativeFilename reproduces the real
-// `mailscript proxy --script=filter.star` invocation, where opts.Filename is
+// `betterproxy proxy --script=filter.star` invocation, where opts.Filename is
 // a bare name with no path separator and the process's cwd is the policy
 // directory. Gating thread.Load installation on "does Filename contain a
 // separator" left load() unavailable for exactly this case — every message

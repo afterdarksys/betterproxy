@@ -307,7 +307,7 @@ func isCJKRune(r rune) bool {
 // inference service, or any other backend, then register it so rule scripts
 // can call embed() and embed_similarity().
 //
-// No implementation ships with MailScript. Real transformer inference needs
+// No implementation ships with BetterProxy. Real transformer inference needs
 // either cgo and a native runtime or a network round trip, and both conflict
 // with running inside the SMTP path by default.
 type Embedder interface {

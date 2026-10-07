@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/ml"
+	"github.com/afterdarksys/betterproxy/pkg/ml"
 	"go.starlark.net/starlark"
 )
 

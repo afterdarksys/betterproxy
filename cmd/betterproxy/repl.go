@@ -6,34 +6,34 @@ import (
 	"os"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var replCmd = &cobra.Command{
 	Use:   "repl",
-	Short: "Interactive MailScript REPL",
-	Long: `Interactive Read-Eval-Print Loop for testing MailScript rules.
+	Short: "Interactive BetterProxy REPL",
+	Long: `Interactive Read-Eval-Print Loop for testing BetterProxy rules.
 
 Load a script and interactively test it with different message parameters.
 
 Examples:
   # Start REPL with a script
-  mailscript repl --script=filter.star
+  betterproxy repl --script=filter.star
 
   # Start REPL without a script (define rules interactively)
-  mailscript repl
+  betterproxy repl
 `,
 	RunE: runREPL,
 }
 
 func init() {
 	rootCmd.AddCommand(replCmd)
-	replCmd.Flags().StringVar(&scriptPath, "script", "", "Path to initial MailScript file (optional)")
+	replCmd.Flags().StringVar(&scriptPath, "script", "", "Path to initial BetterProxy file (optional)")
 }
 
 func runREPL(cmd *cobra.Command, args []string) error {
-	fmt.Println("MailScript Interactive REPL")
+	fmt.Println("BetterProxy Interactive REPL")
 	fmt.Println("Type 'help' for commands, 'exit' to quit")
 	fmt.Println()
 
@@ -68,7 +68,7 @@ func runREPL(cmd *cobra.Command, args []string) error {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("mailscript> ")
+		fmt.Print("betterproxy> ")
 		if !scanner.Scan() {
 			break
 		}
@@ -172,7 +172,7 @@ func runREPL(cmd *cobra.Command, args []string) error {
 			fmt.Println("Reset message context")
 
 		case "edit":
-			fmt.Println("Enter MailScript code (end with 'END' on a line by itself):")
+			fmt.Println("Enter BetterProxy code (end with 'END' on a line by itself):")
 			var code strings.Builder
 			for scanner.Scan() {
 				line := scanner.Text()
@@ -256,7 +256,7 @@ func runREPL(cmd *cobra.Command, args []string) error {
 
 func printREPLHelp() {
 	fmt.Print(`
-MailScript REPL commands
+BetterProxy REPL commands
 
 General:
   help                    Show this help
@@ -284,11 +284,11 @@ Analysis (no script needed):
   auth                    Reported authentication, and whether it is trusted
 
 Example:
-  mailscript> eml suspicious.eml
-  mailscript> validate
-  mailscript> class
-  mailscript> load filter.star
-  mailscript> run
+  betterproxy> eml suspicious.eml
+  betterproxy> validate
+  betterproxy> class
+  betterproxy> load filter.star
+  betterproxy> run
 `)
 }
 

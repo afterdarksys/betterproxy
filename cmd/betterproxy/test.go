@@ -6,25 +6,25 @@ import (
 	"os"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var testCmd = &cobra.Command{
 	Use:   "test",
 	Short: "Run a script against a sample or real message",
-	Long: `Execute a MailScript rule against a synthetic message built from flags,
+	Long: `Execute a BetterProxy rule against a synthetic message built from flags,
 or against a real message file, and report the actions it produced.
 
 Examples:
   # Synthetic message from flags
-  mailscript test --script=filter.star --from=spam@evil.example --subject="Buy now" -v
+  betterproxy test --script=filter.star --from=spam@evil.example --subject="Buy now" -v
 
   # A real message, with authentication verified
-  mailscript test --script=filter.star --eml=message.eml --verify --client-ip=192.0.2.1
+  betterproxy test --script=filter.star --eml=message.eml --verify --client-ip=192.0.2.1
 
   # Machine-readable output for CI
-  mailscript test --script=filter.star --eml=message.eml --json`,
+  betterproxy test --script=filter.star --eml=message.eml --json`,
 	RunE: runTest,
 }
 
@@ -40,7 +40,7 @@ var (
 func init() {
 	rootCmd.AddCommand(testCmd)
 
-	testCmd.Flags().StringVar(&scriptPath, "script", "", "Path to the MailScript file (required)")
+	testCmd.Flags().StringVar(&scriptPath, "script", "", "Path to the BetterProxy file (required)")
 	testCmd.Flags().StringVar(&testEML, "eml", "", "Path to an RFC 5322 message to test against")
 	testCmd.Flags().StringVar(&testFrom, "from", "test@example.com", "Sender address")
 	testCmd.Flags().StringVar(&testTo, "to", "recipient@example.com", "Recipient address")

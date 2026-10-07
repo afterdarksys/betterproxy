@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/ml"
+	"github.com/afterdarksys/betterproxy/pkg/ml"
 	"go.starlark.net/starlark"
 )
 
@@ -63,7 +63,7 @@ func ExecuteEngine(scriptSource string, msg *MessageContext) error {
 // ExecuteEngineWithOptions runs a script with explicit limits and resources.
 func ExecuteEngineWithOptions(scriptSource string, msg *MessageContext, opts Options) error {
 	if msg == nil {
-		return fmt.Errorf("mailscript: nil message context")
+		return fmt.Errorf("betterproxy: nil message context")
 	}
 	normalizeContext(msg)
 
@@ -81,7 +81,7 @@ func ExecuteEngineWithOptions(scriptSource string, msg *MessageContext, opts Opt
 	predeclared := env.predeclared()
 
 	thread := &starlark.Thread{
-		Name: "MailScriptEngine",
+		Name: "BetterProxyEngine",
 		Print: func(_ *starlark.Thread, text string) {
 			if opts.Print != nil {
 				opts.Print(text)
@@ -258,7 +258,7 @@ type scriptEnv struct {
 	opts Options
 }
 
-// predeclared assembles the full MailScript standard library.
+// predeclared assembles the full BetterProxy standard library.
 func (e *scriptEnv) predeclared() starlark.StringDict {
 	dict := starlark.StringDict{}
 	for _, group := range []func() starlark.StringDict{
@@ -1032,7 +1032,7 @@ func (e *scriptEnv) listBuiltins() starlark.StringDict {
 // ---------------------------------------------------------------------------
 // Legacy compatibility
 //
-// These exist so that scripts written against the original MailScript
+// These exist so that scripts written against the original BetterProxy
 // function set keep running unchanged.
 // ---------------------------------------------------------------------------
 

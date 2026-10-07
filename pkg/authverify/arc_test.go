@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 func TestVerifyARCOneSet(t *testing.T) {

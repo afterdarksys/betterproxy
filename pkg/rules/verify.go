@@ -3,7 +3,7 @@ package rules
 import (
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/authverify"
+	"github.com/afterdarksys/betterproxy/pkg/authverify"
 	"go.starlark.net/starlark"
 )
 

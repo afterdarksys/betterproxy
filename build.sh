@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo " Building MailScript..."
+echo " Building BetterProxy..."
 
 # Version: an exact release tag wins; otherwise the VERSION file plus the short
 # commit so untagged builds are still attributable (e.g. 1.0.0+b0ba851).
@@ -25,12 +25,12 @@ echo " Downloading dependencies..."
 go mod download
 
 # Build for current platform
-echo " Building mailscript binary..."
-go build -ldflags="$LDFLAGS" -o mailscript ./cmd/mailscript
+echo " Building betterproxy binary..."
+go build -ldflags="$LDFLAGS" -o betterproxy ./cmd/betterproxy
 
 echo " Build complete!"
-echo " Binary: ./mailscript"
+echo " Binary: ./betterproxy"
 echo "Version: $VERSION"
 
 # Show binary info
-ls -lh mailscript
+ls -lh betterproxy

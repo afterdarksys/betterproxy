@@ -1,6 +1,6 @@
 package rules
 
-import "github.com/afterdarksys/mailscript/pkg/dnsx"
+import "github.com/afterdarksys/betterproxy/pkg/dnsx"
 
 // The DNS client lives in pkg/dnsx so that the authentication verifiers can
 // share it without importing the rules engine. These aliases keep the

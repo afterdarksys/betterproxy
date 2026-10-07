@@ -64,7 +64,7 @@ type TrainOptions struct {
 // DefaultTrainOptions returns options suited to a spam or ham corpus.
 func DefaultTrainOptions() TrainOptions {
 	return TrainOptions{
-		Name:             "mailscript-classifier",
+		Name:             "betterproxy-classifier",
 		Alpha:            1.0,
 		MinDF:            2,
 		MaxDFRatio:       0.95,

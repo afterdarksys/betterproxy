@@ -1,8 +1,8 @@
 """Compose typed policy modules into one administrative policy.
 
 Run with:
-  mailscript test --script=examples/policy-bundle.star --eml=message.eml --verify
-  mailscript proxy --script=examples/policy-bundle.star --dns --upstream=127.0.0.1:25
+  betterproxy test --script=examples/policy-bundle.star --eml=message.eml --verify
+  betterproxy proxy --script=examples/policy-bundle.star --dns --upstream=127.0.0.1:25
 
 load() paths are relative to this root policy and cannot escape its directory.
 Each module exports a normal function. The root evaluate() controls ordering

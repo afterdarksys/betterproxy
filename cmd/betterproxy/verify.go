@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/afterdarksys/mailscript/pkg/authverify"
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/authverify"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -30,9 +30,9 @@ Exit status is 0 when the message authenticates, 1 when it does not, so this
 can gate a pipeline.
 
 Examples:
-  mailscript verify --eml=message.eml --client-ip=192.0.2.1
-  mailscript verify --eml=message.eml --dane --dns-server=1.1.1.1:53
-  cat message.eml | mailscript verify --json`,
+  betterproxy verify --eml=message.eml --client-ip=192.0.2.1
+  betterproxy verify --eml=message.eml --dane --dns-server=1.1.1.1:53
+  cat message.eml | betterproxy verify --json`,
 	RunE: runVerify,
 }
 
@@ -47,7 +47,7 @@ func init() {
 	verifyCmd.Flags().StringVar(&verifyEML, "eml", "", "Message file to verify (default: stdin)")
 	verifyCmd.Flags().StringVar(&verifyMailFrom, "mail-from", "",
 		"SMTP envelope sender; defaults to Return-Path when present")
-	verifyCmd.Flags().StringVar(&verifyAuthserv, "authserv-id", "mailscript",
+	verifyCmd.Flags().StringVar(&verifyAuthserv, "authserv-id", "betterproxy",
 		"authserv-id to use in the rendered Authentication-Results field")
 	addRuntimeFlags(verifyCmd)
 }

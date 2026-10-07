@@ -15,8 +15,8 @@ BLOCKED_EXTENSIONS = [
 
 
 def quarantine_with_reason(reason):
-    add_header("X-MailScript-Quarantine", "true")
-    add_header("X-MailScript-Quarantine-Reason", reason)
+    add_header("X-BetterProxy-Quarantine", "true")
+    add_header("X-BetterProxy-Quarantine-Reason", reason)
     log_entry("gomeow quarantine: " + reason)
     quarantine()
 

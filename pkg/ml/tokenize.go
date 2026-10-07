@@ -1,4 +1,4 @@
-// Package ml provides the text-classification machinery MailScript rules use
+// Package ml provides the text-classification machinery BetterProxy rules use
 // to score messages: a mail-aware analyzer, a TF-IDF vectorizer, a
 // multinomial Naive Bayes classifier, and a WordPiece tokenizer for
 // BERT-style feature extraction.

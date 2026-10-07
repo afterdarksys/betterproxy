@@ -1,6 +1,6 @@
 def evaluate():
     """
-    Example spam filter using MailScript
+    Example spam filter using BetterProxy
     """
     # Get spam score
     score = getspamscore()

@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/authverify"
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/authverify"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 )
 
 // signSimple builds a message signed with simple/simple canonicalisation.

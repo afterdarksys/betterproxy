@@ -10,27 +10,27 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var processCmd = &cobra.Command{
 	Use:   "process",
-	Short: "Process mailbox files with MailScript",
-	Long: `Process mbox or Maildir mailboxes and apply MailScript filtering rules.
+	Short: "Process mailbox files with BetterProxy",
+	Long: `Process mbox or Maildir mailboxes and apply BetterProxy filtering rules.
 
 This allows you to test your mail filtering rules on real mailbox data
 before deploying them to production.
 
 Examples:
   # Process an mbox file
-  mailscript process --script=filter.star --mbox=/var/mail/ryan
+  betterproxy process --script=filter.star --mbox=/var/mail/ryan
 
   # Process a Maildir with verbose output
-  mailscript process --script=filter.star --maildir=~/Maildir -v
+  betterproxy process --script=filter.star --maildir=~/Maildir -v
 
   # Process and output JSON
-  mailscript process --script=filter.star --mbox=inbox.mbox --json
+  betterproxy process --script=filter.star --mbox=inbox.mbox --json
 `,
 	RunE: runProcess,
 }
@@ -44,7 +44,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(processCmd)
-	processCmd.Flags().StringVar(&scriptPath, "script", "", "Path to MailScript file (required)")
+	processCmd.Flags().StringVar(&scriptPath, "script", "", "Path to BetterProxy file (required)")
 	processCmd.Flags().StringVar(&mboxPath, "mbox", "", "Path to mbox file")
 	processCmd.Flags().StringVar(&maildirPath, "maildir", "", "Path to Maildir directory")
 	processCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Don't perform actions, just show what would happen")

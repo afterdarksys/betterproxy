@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"google.golang.org/grpc"
 )
 

@@ -31,14 +31,14 @@ type upstreamConfig struct {
 }
 
 func loadUpstreamConfig(mode, name, ca, user string) (upstreamConfig, error) {
-	c := upstreamConfig{mode: mode, serverName: name, username: user, password: os.Getenv("MAILSCRIPT_UPSTREAM_PASSWORD")}
+	c := upstreamConfig{mode: mode, serverName: name, username: user, password: envWithLegacy("BETTERPROXY_UPSTREAM_PASSWORD", "MAILSCRIPT_UPSTREAM_PASSWORD")}
 	switch mode {
 	case "plain", "starttls", "tls":
 	default:
 		return c, fmt.Errorf("--upstream-tls must be plain, starttls, or tls")
 	}
 	if user != "" && (mode == "plain" || c.password == "") {
-		return c, fmt.Errorf("upstream authentication requires TLS and MAILSCRIPT_UPSTREAM_PASSWORD")
+		return c, fmt.Errorf("upstream authentication requires TLS and BETTERPROXY_UPSTREAM_PASSWORD")
 	}
 	if ca != "" {
 		pem, err := os.ReadFile(ca)
@@ -74,13 +74,13 @@ func (u *upstreamTransaction) command(command string, want int) (int, string, er
 }
 
 func (u *upstreamTransaction) hello() error {
-	code, text, err := u.command("EHLO mailscript-proxy", 0)
+	code, text, err := u.command("EHLO betterproxy-proxy", 0)
 	if err != nil {
 		return err
 	}
 	u.extensions = map[string]string{}
 	if code == 500 || code == 502 || code == 504 {
-		_, _, err = u.command("HELO mailscript-proxy", 250)
+		_, _, err = u.command("HELO betterproxy-proxy", 250)
 		return err
 	}
 	if code != 250 {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/afterdarksys/mailscript/pkg/proto"
+	pb "github.com/afterdarksys/betterproxy/pkg/proto"
 )
 
 func TestPolicyDispositionAcrossAdapters(t *testing.T) {
@@ -24,7 +24,7 @@ func TestPolicyDispositionAcrossAdapters(t *testing.T) {
 		t.Run(tc.script, func(t *testing.T) {
 			p := &SMTPProxy{script: "def evaluate():\n    " + tc.script + "\n", stats: &ProxyStats{}}
 			s := &SMTPSession{proxy: p, data: []byte("From: a@example.com\r\n\r\nbody\r\n")}
-			accepted, _, _ := s.processWithMailScript()
+			accepted, _, _ := s.processWithBetterProxy()
 			if s.replyCode != tc.code || accepted != (tc.code == 250) {
 				t.Fatalf("SMTP got %d/%v", s.replyCode, accepted)
 			}
@@ -163,7 +163,7 @@ func TestUpstreamRecipientFailuresNeverSendDATA(t *testing.T) {
 
 func TestUnsupportedDeliveryActionsDefer(t *testing.T) {
 	s := &SMTPSession{proxy: &SMTPProxy{script: "def evaluate():\n    fileinto(\"Inbox\")\n"}, data: []byte("Subject: x\r\n\r\nbody")}
-	accepted, _, _ := s.processWithMailScript()
+	accepted, _, _ := s.processWithBetterProxy()
 	if accepted || s.replyCode != 451 {
 		t.Fatalf("unsupported action was ignored")
 	}
@@ -240,12 +240,12 @@ func TestGRPCForwardsQuarantineWithNullSender(t *testing.T) {
 		}
 	}()
 	p := &SMTPProxy{script: "def evaluate():\n    quarantine()\n", forwardQuarantine: true, upstreamServer: listener.Addr().String(), stats: &ProxyStats{}}
-	resp, err := (&MailScriptServiceServer{proxy: p}).ProcessMessage(context.Background(), &pb.ProcessRequest{From: "", To: []string{"user@example.com"}, RawMessage: []byte("From: a@example.com\r\nX-MailScript-Quarantine: forged\r\n\r\n.dot\r\n"), ForwardToUpstream: true})
+	resp, err := (&MailScriptServiceServer{proxy: p}).ProcessMessage(context.Background(), &pb.ProcessRequest{From: "", To: []string{"user@example.com"}, RawMessage: []byte("From: a@example.com\r\nX-BetterProxy-Quarantine: forged\r\n\r\n.dot\r\n"), ForwardToUpstream: true})
 	if err != nil || !resp.Accepted || !resp.Forwarded || resp.SmtpCode != 250 {
 		t.Fatalf("%v, %v", resp, err)
 	}
 	transcript := <-messages
-	for _, want := range []string{"MAIL FROM:<>\r\n", "X-MailScript-Quarantine: true\r\n", "\r\n..dot\r\n"} {
+	for _, want := range []string{"MAIL FROM:<>\r\n", "X-BetterProxy-Quarantine: true\r\n", "\r\n..dot\r\n"} {
 		if !strings.Contains(transcript, want) {
 			t.Errorf("missing %q in %q", want, transcript)
 		}

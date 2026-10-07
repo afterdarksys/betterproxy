@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/authverify"
+	"github.com/afterdarksys/betterproxy/pkg/authverify"
 )
 
 // Header is a single header occurrence. Unlike a map, the header list

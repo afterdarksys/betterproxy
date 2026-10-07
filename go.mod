@@ -1,4 +1,4 @@
-module github.com/afterdarksys/mailscript
+module github.com/afterdarksys/betterproxy
 
 go 1.21
 

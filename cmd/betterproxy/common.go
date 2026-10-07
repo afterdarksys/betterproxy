@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
-	"github.com/afterdarksys/mailscript/pkg/ml"
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/ml"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +23,16 @@ var (
 	BuildTime = "unknown"
 	GoVersion = "unknown"
 )
+
+// envWithLegacy reads the BETTERPROXY_* environment variable, falling back to
+// the legacy MAILSCRIPT_* name when unset so pre-rebrand deployments keep
+// working across the upgrade.
+func envWithLegacy(name, legacy string) string {
+	if v := os.Getenv(name); v != "" {
+		return v
+	}
+	return os.Getenv(legacy)
+}
 
 // Shared runtime options, registered on commands that execute rules.
 var (
@@ -326,10 +336,10 @@ func readScript(path string) (string, string, error) {
 	if path == "" {
 		home, _ := os.UserHomeDir()
 		candidates = []string{
-			"mailscript.star",
-			"./mailscript.star",
-			home + "/.config/mailscript/default.star",
-			"/etc/mailscript/default.star",
+			"betterproxy.star",
+			"./betterproxy.star",
+			home + "/.config/betterproxy/default.star",
+			"/etc/betterproxy/default.star",
 		}
 	}
 
@@ -346,5 +356,5 @@ func readScript(path string) (string, string, error) {
 		}
 	}
 
-	return "", "", fmt.Errorf("no script found; pass --script or create ./mailscript.star")
+	return "", "", fmt.Errorf("no script found; pass --script or create ./betterproxy.star")
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// yaraScanner talks only to a private scanner sidecar.  MailScript never
+// yaraScanner talks only to a private scanner sidecar.  BetterProxy never
 // executes tenant-supplied rules or a scanner binary in the SMTP process.
 // The sidecar contract is POST /v1/scan with an RFC 822 message body and a
 // JSON response containing `matches`, either as rule-name strings or objects

@@ -11,15 +11,15 @@ from platform import port, wait_smtp
 
 
 def run(binary, mta):
-    name = 'mailscript-' + mta + '-' + uuid.uuid4().hex[:8]
+    name = 'betterproxy-' + mta + '-' + uuid.uuid4().hex[:8]
     backend, proxy_port, grpc = [port() for _ in range(3)]
     process = None
-    with tempfile.TemporaryDirectory(prefix='mailscript-mta-') as directory:
+    with tempfile.TemporaryDirectory(prefix='betterproxy-mta-') as directory:
         root = pathlib.Path(directory)
         policy = root/'filter.star'
-        policy.write_text('def evaluate():\n    add_header("X-MailScript-Test", "passed")\n    accept()\n')
+        policy.write_text('def evaluate():\n    add_header("X-BetterProxy-Test", "passed")\n    accept()\n')
         try:
-            subprocess.run(['docker', 'run', '--detach', '--rm', '--name', name, '--hostname', 'mail.test', '-p', f'127.0.0.1:{backend}:25', f'mailscript-mta:{mta}'], check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(['docker', 'run', '--detach', '--rm', '--name', name, '--hostname', 'mail.test', '-p', f'127.0.0.1:{backend}:25', f'betterproxy-mta:{mta}'], check=True, stdout=subprocess.DEVNULL)
             wait_smtp(backend)
             with (root/'proxy.log').open('w+') as log:
                 process = subprocess.Popen([binary, 'proxy', '--script', str(policy), '--port', str(proxy_port), '--grpc-port', str(grpc), '--upstream', f'127.0.0.1:{backend}'], stdout=log, stderr=log)
@@ -28,13 +28,13 @@ def run(binary, mta):
                     client.ehlo(); assert client.mail('')[0] == 250
                     assert client.rcpt('outside@external.test')[0] >= 500
                     assert client.rcpt('probe@mail.test')[0] == 250
-                    code, reason = client.data(b'From: probe@mail.test\r\nTo: probe@mail.test\r\nSubject: mailscript-integration\r\n\r\n.first\r\n..second\r\n')
+                    code, reason = client.data(b'From: probe@mail.test\r\nTo: probe@mail.test\r\nSubject: betterproxy-integration\r\n\r\n.first\r\n..second\r\n')
                     assert code == 250, (code, reason)
                 deadline = time.monotonic()+20
                 while time.monotonic() < deadline:
                     result = subprocess.run(['docker', 'exec', name, 'sh', '-c', 'cat /var/mail/probe /home/probe/Maildir/new/* 2>/dev/null'], capture_output=True)
                     message = result.stdout.replace(b'\r\n', b'\n')
-                    if b'X-MailScript-Test: passed' in message and b'\n.first\n..second\n' in message:
+                    if b'X-BetterProxy-Test: passed' in message and b'\n.first\n..second\n' in message:
                         break
                     time.sleep(.2)
                 else:
@@ -55,7 +55,7 @@ def run(binary, mta):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mailscript', required=True)
+    parser.add_argument('--betterproxy', required=True)
     parser.add_argument('--mta', required=True, choices=['postfix', 'exim', 'sendmail', 'qmail'])
     args = parser.parse_args()
-    run(str(pathlib.Path(args.mailscript).resolve()), args.mta)
+    run(str(pathlib.Path(args.betterproxy).resolve()), args.mta)

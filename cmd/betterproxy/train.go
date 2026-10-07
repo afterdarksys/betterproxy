@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/ml"
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/ml"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -30,14 +30,14 @@ unseen mail rather than memorised training data.
 
 Examples:
   # Binary spam model
-  mailscript train --spam=spam.mbox --ham=ham.mbox --out=spam.json.gz
+  betterproxy train --spam=spam.mbox --ham=ham.mbox --out=spam.json.gz
 
   # Multi-class model
-  mailscript train --label=phish:phish.mbox --label=bulk:bulk.mbox \
+  betterproxy train --label=phish:phish.mbox --label=bulk:bulk.mbox \
     --label=legit:inbox.mbox --out=triage.json.gz
 
   # Use the model
-  mailscript test --script=filter.star --model=spam.json.gz --eml=message.eml`,
+  betterproxy test --script=filter.star --model=spam.json.gz --eml=message.eml`,
 	RunE: runTrain,
 }
 

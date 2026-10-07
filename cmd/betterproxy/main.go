@@ -15,9 +15,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "mailscript",
-	Short: "MailScript: Starlark email filtering engine",
-	Long: `MailScript filters email with Starlark rules. It runs offline against
+	Use:   "betterproxy",
+	Short: "BetterProxy: Starlark email filtering engine",
+	Long: `BetterProxy filters email with Starlark rules. It runs offline against
 sample messages and mailboxes, as an SMTP proxy in front of any mail server,
 or as a library.
 
@@ -31,22 +31,22 @@ Capabilities:
 
 Examples:
   # Test a script against a sample message
-  mailscript test --script=filter.star --subject="Buy now"
+  betterproxy test --script=filter.star --subject="Buy now"
 
   # Inspect a real message: validation, authentication, classification
-  mailscript inspect --eml=message.eml --verify
+  betterproxy inspect --eml=message.eml --verify
 
   # Verify sender authentication only
-  mailscript verify --eml=message.eml --client-ip=192.0.2.1
+  betterproxy verify --eml=message.eml --client-ip=192.0.2.1
 
   # Process a mailbox
-  mailscript process --script=filter.star --mbox=/var/mail/user
+  betterproxy process --script=filter.star --mbox=/var/mail/user
 
   # Train a spam classifier from labelled mailboxes
-  mailscript train --spam=spam.mbox --ham=ham.mbox --out=model.json.gz
+  betterproxy train --spam=spam.mbox --ham=ham.mbox --out=model.json.gz
 
   # Check a script for errors without running it
-  mailscript lint --script=filter.star`,
+  betterproxy lint --script=filter.star`,
 	SilenceUsage: true,
 }
 
@@ -54,7 +54,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("mailscript %s\n", Version)
+		fmt.Printf("betterproxy %s\n", Version)
 		fmt.Printf("built:      %s\n", BuildTime)
 		fmt.Printf("go version: %s\n", GoVersion)
 	},

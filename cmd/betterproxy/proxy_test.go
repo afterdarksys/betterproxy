@@ -11,8 +11,8 @@ import (
 )
 
 func TestStripHeaderRemovesClientQuarantineMarker(t *testing.T) {
-	raw := []byte("From: sender@example.net\r\nX-MailScript-Quarantine: true\r\nSubject: test\r\n\r\nbody\r\n")
-	got := string(stripHeader(raw, "x-mailscript-quarantine"))
+	raw := []byte("From: sender@example.net\r\nX-BetterProxy-Quarantine: true\r\nSubject: test\r\n\r\nbody\r\n")
+	got := string(stripHeader(raw, "x-betterproxy-quarantine"))
 	want := "From: sender@example.net\r\nSubject: test\r\n\r\nbody\r\n"
 	if got != want {
 		t.Fatalf("stripHeader() = %q, want %q", got, want)
@@ -55,7 +55,7 @@ def evaluate():
 		recipients: []string{"recipient@example.net"},
 		data:       []byte("From: Real <sender@example.com>\r\nFrom: Fake <attacker@example.net>\r\nSubject: test\r\n\r\nbody\r\n"),
 	}
-	accepted, _, reason := session.processWithMailScript()
+	accepted, _, reason := session.processWithBetterProxy()
 	if accepted || !strings.Contains(reason, "dropped") {
 		t.Fatalf("duplicate From was not rejected: accepted=%v reason=%q", accepted, reason)
 	}

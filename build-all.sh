@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo " Building MailScript for multiple platforms..."
+echo " Building BetterProxy for multiple platforms..."
 
 VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
 BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
@@ -28,13 +28,13 @@ for PLATFORM in "${PLATFORMS[@]}"; do
     GOOS=${PLATFORM%/*}
     GOARCH=${PLATFORM#*/}
 
-    OUTPUT="dist/mailscript-${VERSION}-${GOOS}-${GOARCH}"
+    OUTPUT="dist/betterproxy-${VERSION}-${GOOS}-${GOARCH}"
     if [ "$GOOS" = "windows" ]; then
         OUTPUT="${OUTPUT}.exe"
     fi
 
     echo " Building for $GOOS/$GOARCH..."
-    GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="$LDFLAGS" -o "$OUTPUT" ./cmd/mailscript
+    GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="$LDFLAGS" -o "$OUTPUT" ./cmd/betterproxy
 
     # Create tarball (except for Windows)
     if [ "$GOOS" != "windows" ]; then

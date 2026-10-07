@@ -9,25 +9,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Integrate with aftermaild for live testing",
-	Long: `Connect to a running aftermaild instance and apply MailScript rules
+	Long: `Connect to a running aftermaild instance and apply BetterProxy rules
 to messages in real-time. Perfect for debugging and development.
 
 Examples:
   # Check daemon status
-  mailscript daemon status
+  betterproxy daemon status
 
   # Test script against daemon messages
-  mailscript daemon test --script=filter.star --limit=10
+  betterproxy daemon test --script=filter.star --limit=10
 
   # Monitor daemon and apply rules
-  mailscript daemon monitor --script=filter.star
+  betterproxy daemon monitor --script=filter.star
 `,
 }
 
@@ -62,11 +62,11 @@ func init() {
 
 	daemonCmd.PersistentFlags().StringVar(&daemonURL, "url", "http://127.0.0.1:4460", "Daemon URL")
 
-	daemonTestCmd.Flags().StringVar(&scriptPath, "script", "", "Path to MailScript file (required)")
+	daemonTestCmd.Flags().StringVar(&scriptPath, "script", "", "Path to BetterProxy file (required)")
 	daemonTestCmd.Flags().IntVar(&limit, "limit", 10, "Maximum messages to test")
 	daemonTestCmd.MarkFlagRequired("script")
 
-	daemonMonitorCmd.Flags().StringVar(&scriptPath, "script", "", "Path to MailScript file (required)")
+	daemonMonitorCmd.Flags().StringVar(&scriptPath, "script", "", "Path to BetterProxy file (required)")
 	daemonMonitorCmd.Flags().IntVar(&pollInterval, "interval", 5, "Poll interval in seconds")
 	daemonMonitorCmd.MarkFlagRequired("script")
 }

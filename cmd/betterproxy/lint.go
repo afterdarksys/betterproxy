@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -18,14 +18,14 @@ Run this in CI: a script that fails to parse takes the filter offline, and a
 script that reaches no action leaves delivery to the default.
 
 Examples:
-  mailscript lint --script=filter.star
-  mailscript lint --script=filter.star --json`,
+  betterproxy lint --script=filter.star
+  betterproxy lint --script=filter.star --json`,
 	RunE: runLint,
 }
 
 func init() {
 	rootCmd.AddCommand(lintCmd)
-	lintCmd.Flags().StringVar(&scriptPath, "script", "", "Path to the MailScript file (required)")
+	lintCmd.Flags().StringVar(&scriptPath, "script", "", "Path to the BetterProxy file (required)")
 	addRuntimeFlags(lintCmd)
 	lintCmd.MarkFlagRequired("script")
 }

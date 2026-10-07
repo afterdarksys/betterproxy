@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
@@ -17,9 +17,9 @@ The list is read from the live registration, so it always matches the binary
 you are running. SPEC.md documents the signatures.
 
 Examples:
-  mailscript builtins
-  mailscript builtins --filter=dkim
-  mailscript builtins --json`,
+  betterproxy builtins
+  betterproxy builtins --filter=dkim
+  betterproxy builtins --json`,
 	RunE: runBuiltins,
 }
 

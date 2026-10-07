@@ -34,27 +34,27 @@ first. The default platform image name is `mailhub:qualification-2.7`; override 
 with `MAILHUB_IMAGE`.
 
 ```sh
-# From the MailScript repository root:
+# From the BetterProxy repository root:
 ./tests/integration/run.sh
 ```
 
 For an individual backend:
 
 ```sh
-go build -o /tmp/mailscript-check ./cmd/mailscript
-docker build --build-arg MTA=postfix -t mailscript-mta:postfix tests/integration/mta
-python3 tests/integration/mta.py --mailscript /tmp/mailscript-check --mta postfix
+go build -o /tmp/betterproxy-check ./cmd/betterproxy
+docker build --build-arg MTA=postfix -t betterproxy-mta:postfix tests/integration/mta
+python3 tests/integration/mta.py --betterproxy /tmp/betterproxy-check --mta postfix
 
 # Platform, using an existing local build:
-python3 tests/integration/platform.py --mailscript /tmp/mailscript-check --image mailhub:qualification-2.7
+python3 tests/integration/platform.py --betterproxy /tmp/betterproxy-check --image mailhub:qualification-2.7
 ```
 
 Use `MTA=exim` or `MTA=sendmail` for the other Debian fixtures. qmail uses its own
 Dockerfile, pinned to the upstream source commit:
 
 ```sh
-docker build -f tests/integration/mta/Dockerfile.qmail -t mailscript-mta:qmail tests/integration/mta
-python3 tests/integration/mta.py --mailscript /tmp/mailscript-check --mta qmail
+docker build -f tests/integration/mta/Dockerfile.qmail -t betterproxy-mta:qmail tests/integration/mta
+python3 tests/integration/mta.py --betterproxy /tmp/betterproxy-check --mta qmail
 ```
 
 Each runner creates unique container names and temporary directories, publishes

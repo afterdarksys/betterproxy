@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 )
 
 const maxAnalyzerResponseBytes = 1 << 20

@@ -30,7 +30,7 @@ recipient failures. See `docs/INTEGRATION.md` for deployment and limitations.
   `tests/integration/README.md` for tested versions and reproduction commands.
 
 Host-specific folder, reply, digest and DLP implementations belong to the host
-adapter. Deployments must implement the advertised capabilities; MailScript
+adapter. Deployments must implement the advertised capabilities; BetterProxy
 refuses unsupported plans and does not silently simulate those operations.
 
 ## Completed in the gateway integration pass
@@ -68,4 +68,4 @@ refuses unsupported plans and does not silently simulate those operations.
 
 The former `code-review-graph` server `torch` note was an external MCP server
 environment issue, not part of this repository. It has been removed from the
-MailScript work queue; MailScript does not import or require PyTorch.
+BetterProxy work queue; BetterProxy does not import or require PyTorch.

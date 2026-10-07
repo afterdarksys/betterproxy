@@ -5,7 +5,7 @@
 # score, then decides once at the end.
 #
 # Run with:
-#   mailscript test --script=examples/phishing-defense.star \
+#   betterproxy test --script=examples/phishing-defense.star \
 #     --eml=message.eml --verify --client-ip=203.0.113.10
 #
 # The brands list should name the organisations your users are impersonated
@@ -134,11 +134,11 @@ def evaluate():
         return
 
     if score >= 6.0:
-        add_header("X-MailScript-Suspicious", "score=" + str(int(score)))
+        add_header("X-BetterProxy-Suspicious", "score=" + str(int(score)))
         fileinto("Suspicious")
         return
 
     if score > 0:
-        add_header("X-MailScript-Score", str(int(score)))
+        add_header("X-BetterProxy-Score", str(int(score)))
 
     accept()

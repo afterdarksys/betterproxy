@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 )
 
 // DANE result values.
@@ -196,7 +196,7 @@ func CheckDANEDomain(resolver *dnsx.Resolver, domain string) DANEDomainResult {
 }
 
 // VerifyDANECertificate checks a presented certificate chain against the
-// TLSA records for a host. It is used when MailScript itself made the TLS
+// TLSA records for a host. It is used when BetterProxy itself made the TLS
 // connection, for example when relaying to an upstream.
 //
 // chain must be the peer certificates in the order the server sent them,

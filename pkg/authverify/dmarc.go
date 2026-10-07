@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/afterdarksys/mailscript/pkg/dnsx"
+	"github.com/afterdarksys/betterproxy/pkg/dnsx"
 	"golang.org/x/net/publicsuffix"
 )
 

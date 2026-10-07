@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise MailScript against an isolated go-emailservice-ads container.
+"""Exercise BetterProxy against an isolated go-emailservice-ads container.
 Never uses deployment credentials or sends external mail.
 """
 import argparse
@@ -28,7 +28,7 @@ def wait_smtp(number, process=None):
     deadline = time.monotonic() + 30
     while time.monotonic() < deadline:
         if process and process.poll() is not None:
-            raise RuntimeError('MailScript exited during startup')
+            raise RuntimeError('BetterProxy exited during startup')
         try:
             with smtplib.SMTP('127.0.0.1', number, timeout=10):
                 return
@@ -38,8 +38,8 @@ def wait_smtp(number, process=None):
 
 
 def run(binary, image):
-    name = 'mailscript-platform-' + uuid.uuid4().hex[:10]
-    with tempfile.TemporaryDirectory(prefix='mailscript-platform-') as directory:
+    name = 'betterproxy-platform-' + uuid.uuid4().hex[:10]
+    with tempfile.TemporaryDirectory(prefix='betterproxy-platform-') as directory:
         root = pathlib.Path(directory)
         cert, key = root/'cert.pem', root/'key.pem'
         subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', str(key), '-out', str(cert), '-days', '1', '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -51,7 +51,7 @@ def run(binary, image):
             'api': {'rest_addr': '0.0.0.0:8080', 'tls': tls_files, 'api_keys': [{'name': 'test', 'key': 'isolated-api-token', 'permissions': ['quarantine:read', 'quarantine:write']}]},
             'platform': {'data_dir': '/data', 'policy_path': '/test/policies.yaml', 'listeners': [{'addr': '0.0.0.0:2525', 'role': 'perimeter', 'tls': tls_files}]},
             'auth': {'default_users': [{'username': 'probe@mail.test', 'email': 'probe@mail.test', 'password': 'isolated-test-password'}]},
-            'content_filter': {'enabled': True, 'trusted_proxy_networks': ['127.0.0.1/32', '172.16.0.0/12', '192.168.0.0/16'], 'quarantine_header': 'X-MailScript-Quarantine', 'quarantine_folder': 'Junk'},
+            'content_filter': {'enabled': True, 'trusted_proxy_networks': ['127.0.0.1/32', '172.16.0.0/12', '192.168.0.0/16'], 'quarantine_header': 'X-BetterProxy-Quarantine', 'quarantine_folder': 'Junk'},
             'logging': {'level': 'warn', 'format': 'json'},
         }
         (root/'config.json').write_text(json.dumps(config))
@@ -71,7 +71,7 @@ def run(binary, image):
                     assert client.rcpt('outsider@external.test')[0] >= 500
                     assert client.rcpt('missing@mail.test')[0] == 550
                     assert client.rcpt('probe@mail.test')[0] == 250
-                    code, text = client.data(b'From: probe@mail.test\r\nTo: probe@mail.test\r\nSubject: ordinary\r\nX-MailScript-Quarantine: forged\r\n\r\n.first\r\n..second\r\n')
+                    code, text = client.data(b'From: probe@mail.test\r\nTo: probe@mail.test\r\nSubject: ordinary\r\nX-BetterProxy-Quarantine: forged\r\n\r\n.first\r\n..second\r\n')
                     assert code == 250, (code, text)
                     assert not client.sendmail('', ['probe@mail.test'], b'From: probe@mail.test\r\nSubject: quarantine\r\n\r\nheld\r\n')
                 tls = ssl.create_default_context(cafile=str(cert))
@@ -87,7 +87,7 @@ def run(binary, image):
                                 if status == 'OK' and found[0]:
                                     _, records = client.fetch(found[0].split()[0], '(RFC822)')
                                     message = next(row[1] for row in records if isinstance(row, tuple))
-                                    assert b'X-MailScript-Quarantine:' not in message
+                                    assert b'X-BetterProxy-Quarantine:' not in message
                                     if folder == 'INBOX':
                                         assert b'\r\n.first\r\n..second\r\n' in message
                                     break
@@ -148,7 +148,7 @@ def run(binary, image):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mailscript', required=True)
+    parser.add_argument('--betterproxy', required=True)
     parser.add_argument('--image', default='mailhub:qualification-2.7')
     args = parser.parse_args()
-    run(str(pathlib.Path(args.mailscript).resolve()), args.image)
+    run(str(pathlib.Path(args.betterproxy).resolve()), args.image)

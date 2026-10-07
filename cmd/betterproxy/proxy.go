@@ -19,24 +19,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/afterdarksys/mailscript/pkg/rules"
+	"github.com/afterdarksys/betterproxy/pkg/rules"
 	"github.com/spf13/cobra"
 )
 
 var proxyCmd = &cobra.Command{
 	Use:   "proxy",
-	Short: "Run MailScript as an SMTP proxy/gateway",
-	Long: `Run MailScript as a full SMTP proxy server with gRPC interface.
+	Short: "Run BetterProxy as an SMTP proxy/gateway",
+	Long: `Run BetterProxy as a full SMTP proxy server with gRPC interface.
 
 This creates a filtering gateway that sits in front of your mail server,
-applying MailScript rules to messages in real-time as they flow through.
+applying BetterProxy rules to messages in real-time as they flow through.
 
 The cheeky port numbers (3025, 3587) reference standard SMTP ports (25, 587)
 but are prefixed with "3" to avoid conflicts and root requirements.
 
 Features:
   - SMTP proxy on configurable ports (default: 3025, 3587)
-  - Apply MailScript filtering rules to all messages
+  - Apply BetterProxy filtering rules to all messages
   - gRPC interface for non-mail app integration
   - TLS/STARTTLS support
   - Real-time message processing
@@ -45,24 +45,24 @@ Features:
 The gRPC interface can trigger real SMTP delivery through --upstream and
 evaluates your policy script against caller-supplied message content, so it
 binds to 127.0.0.1 by default and refuses to start on any other address
-without an auth token (--grpc-auth-token or MAILSCRIPT_GRPC_TOKEN) — there is
+without an auth token (--grpc-auth-token or BETTERPROXY_GRPC_TOKEN) — there is
 no unauthenticated non-loopback mode.
 
 Examples:
   # Run SMTP proxy on ports 3025 and 3587
-  mailscript proxy --script=filter.star --upstream=127.0.0.1:2525 --port=3025,3587
+  betterproxy proxy --script=filter.star --upstream=127.0.0.1:2525 --port=3025,3587
 
   # Enable TLS
-  mailscript proxy --script=filter.star --upstream=127.0.0.1:2525 --enable-tls --cert=cert.pem --key=key.pem
+  betterproxy proxy --script=filter.star --upstream=127.0.0.1:2525 --enable-tls --cert=cert.pem --key=key.pem
 
   # Disable TLS
-  mailscript proxy --script=filter.star --upstream=127.0.0.1:2525 --disable-tls
+  betterproxy proxy --script=filter.star --upstream=127.0.0.1:2525 --disable-tls
 
   # Forward to upstream server
-  mailscript proxy --script=filter.star --upstream=mail.example.com:25
+  betterproxy proxy --script=filter.star --upstream=mail.example.com:25
 
   # Expose gRPC beyond localhost (requires a token)
-  mailscript proxy --script=filter.star --upstream=127.0.0.1:2525 --grpc-listen=0.0.0.0 --grpc-auth-token=$(openssl rand -hex 32)
+  betterproxy proxy --script=filter.star --upstream=127.0.0.1:2525 --grpc-listen=0.0.0.0 --grpc-auth-token=$(openssl rand -hex 32)
 `,
 	RunE: runProxy,
 }
@@ -89,7 +89,7 @@ var deliveryAdapterURL string
 func init() {
 	rootCmd.AddCommand(proxyCmd)
 
-	proxyCmd.Flags().StringVar(&scriptPath, "script", "", "Path to MailScript file (required)")
+	proxyCmd.Flags().StringVar(&scriptPath, "script", "", "Path to BetterProxy file (required)")
 	proxyCmd.Flags().IntSliceVar(&proxyPorts, "port", []int{3025, 3587}, "SMTP ports to listen on (comma-separated)")
 	proxyCmd.Flags().BoolVar(&enableTLS, "enable-tls", false, "Enable TLS/STARTTLS")
 	proxyCmd.Flags().BoolVar(&disableTLS, "disable-tls", false, "Disable TLS (plaintext only)")
@@ -97,18 +97,18 @@ func init() {
 	proxyCmd.Flags().StringVar(&keyFile, "key", "", "TLS key file")
 	proxyCmd.Flags().StringVar(&upstreamServer, "upstream", "", "Upstream SMTP server (e.g., mail.example.com:25)")
 	proxyCmd.Flags().IntVar(&grpcPort, "grpc-port", 50051, "gRPC port for programmatic access")
-	proxyCmd.Flags().StringVar(&grpcListenAddr, "grpc-listen", "127.0.0.1", "gRPC bind address. Non-loopback addresses require --grpc-auth-token (or MAILSCRIPT_GRPC_TOKEN) — the server refuses to start otherwise")
-	proxyCmd.Flags().StringVar(&grpcAuthToken, "grpc-auth-token", "", "Bearer token required on every gRPC call. Falls back to the MAILSCRIPT_GRPC_TOKEN environment variable if unset")
+	proxyCmd.Flags().StringVar(&grpcListenAddr, "grpc-listen", "127.0.0.1", "gRPC bind address. Non-loopback addresses require --grpc-auth-token (or BETTERPROXY_GRPC_TOKEN) — the server refuses to start otherwise")
+	proxyCmd.Flags().StringVar(&grpcAuthToken, "grpc-auth-token", "", "Bearer token required on every gRPC call. Falls back to the BETTERPROXY_GRPC_TOKEN environment variable if unset")
 	proxyCmd.Flags().StringVar(&smtpListenAddr, "listen", "127.0.0.1", "SMTP bind address")
 	proxyCmd.Flags().IntVar(&maxConnections, "max-connections", 100, "Maximum concurrent connections")
-	proxyCmd.Flags().BoolVar(&forwardQuarantine, "forward-quarantine", false, "Relay quarantined mail upstream with a trusted X-MailScript-Quarantine marker")
+	proxyCmd.Flags().BoolVar(&forwardQuarantine, "forward-quarantine", false, "Relay quarantined mail upstream with a trusted X-BetterProxy-Quarantine marker")
 
 	proxyCmd.Flags().StringVar(&upstreamTLSMode, "upstream-tls", "plain", "Backend transport: plain, starttls (required), or tls (implicit)")
 	proxyCmd.Flags().StringVar(&upstreamTLSName, "upstream-tls-name", "", "Backend TLS certificate hostname (default upstream hostname)")
 	proxyCmd.Flags().StringVar(&upstreamCA, "upstream-ca", "", "Additional PEM root certificates for backend TLS")
-	proxyCmd.Flags().StringVar(&upstreamUser, "upstream-user", "", "Backend service account; password from MAILSCRIPT_UPSTREAM_PASSWORD")
+	proxyCmd.Flags().StringVar(&upstreamUser, "upstream-user", "", "Backend service account; password from BETTERPROXY_UPSTREAM_PASSWORD")
 	proxyCmd.Flags().BoolVar(&submission, "submission", false, "Require incoming TLS and AUTH PLAIN verified by the backend")
-	proxyCmd.Flags().StringVar(&deliveryAdapterURL, "delivery-adapter", "", "Host delivery API URL; token from MAILSCRIPT_DELIVERY_TOKEN")
+	proxyCmd.Flags().StringVar(&deliveryAdapterURL, "delivery-adapter", "", "Host delivery API URL; token from BETTERPROXY_DELIVERY_TOKEN")
 	addRuntimeFlags(proxyCmd)
 
 	proxyCmd.MarkFlagRequired("script")
@@ -126,7 +126,7 @@ func runProxy(cmd *cobra.Command, args []string) error {
 	}
 	token := grpcAuthToken
 	if token == "" {
-		token = os.Getenv("MAILSCRIPT_GRPC_TOKEN")
+		token = envWithLegacy("BETTERPROXY_GRPC_TOKEN", "MAILSCRIPT_GRPC_TOKEN")
 	}
 	if token == "" && !isLoopbackAddr(grpcListenAddr) {
 		return fmt.Errorf("non-loopback gRPC requires an auth token")
@@ -169,7 +169,7 @@ func runProxy(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid policy: %w", err)
 	}
 	if deliveryAdapterURL != "" {
-		proxy.hostAdapter, err = newHostAdapter(deliveryAdapterURL, os.Getenv("MAILSCRIPT_DELIVERY_TOKEN"))
+		proxy.hostAdapter, err = newHostAdapter(deliveryAdapterURL, envWithLegacy("BETTERPROXY_DELIVERY_TOKEN", "MAILSCRIPT_DELIVERY_TOKEN"))
 		if err != nil {
 			return fmt.Errorf("delivery adapter: %w", err)
 		}
@@ -219,7 +219,7 @@ func runProxy(cmd *cobra.Command, args []string) error {
 	for _, listener := range listeners {
 		go func(l net.Listener) { failures <- proxy.serveSMTP(l) }(listener)
 	}
-	log.Printf("MailScript ready: SMTP %s:%v, upstream %s", smtpListenAddr, proxyPorts, upstreamServer)
+	log.Printf("BetterProxy ready: SMTP %s:%v, upstream %s", smtpListenAddr, proxyPorts, upstreamServer)
 	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	reload := make(chan os.Signal, 1)
@@ -369,7 +369,7 @@ func (p *SMTPProxy) handleSMTPConnection(conn net.Conn) {
 
 	defer session.closeUpstream()
 	// Send greeting
-	session.writeLine("220 MailScript SMTP Proxy ready")
+	session.writeLine("220 BetterProxy SMTP Proxy ready")
 
 	// Handle SMTP commands
 	for {
@@ -463,7 +463,7 @@ func (s *SMTPSession) handleHELO(parts []string) {
 	}
 	s.resetTransaction()
 	s.helo = parts[1]
-	s.writeLine("250 MailScript SMTP Proxy")
+	s.writeLine("250 BetterProxy SMTP Proxy")
 }
 
 func (s *SMTPSession) handleEHLO(parts []string) {
@@ -474,7 +474,7 @@ func (s *SMTPSession) handleEHLO(parts []string) {
 
 	s.resetTransaction()
 	s.helo = parts[1]
-	s.writeLine("250-MailScript SMTP Proxy")
+	s.writeLine("250-BetterProxy SMTP Proxy")
 	s.writeLine("250-PIPELINING")
 	s.writeLine("250-8BITMIME")
 	if s.proxy.tlsConfig != nil && !s.tlsActive {
@@ -587,15 +587,15 @@ func (s *SMTPSession) handleDATA() {
 
 	s.data = []byte(data.String())
 
-	// Process with MailScript
-	accepted, quarantined, reason := s.processWithMailScript()
+	// Process with BetterProxy
+	accepted, quarantined, reason := s.processWithBetterProxy()
 
 	s.proxy.stats.Lock()
 	s.proxy.stats.MessagesProcessed++
 	s.proxy.stats.BytesProcessed += int64(len(s.data))
 	if accepted {
 		if quarantined {
-			s.data = prependHeader(s.data, "X-MailScript-Quarantine", "true")
+			s.data = prependHeader(s.data, "X-BetterProxy-Quarantine", "true")
 		}
 	} else {
 		s.proxy.stats.MessagesRejected++
@@ -636,11 +636,14 @@ func (s *SMTPSession) handleDATA() {
 
 }
 
-func (s *SMTPSession) processWithMailScript() (bool, bool, string) {
+func (s *SMTPSession) processWithBetterProxy() (bool, bool, string) {
 	// This header is a private proxy-to-upstream control signal. A public SMTP
 	// client must never be able to set it and get a message routed to a
 	// quarantine mailbox, so remove any client-supplied copy before parsing or
 	// forwarding. The proxy adds a fresh copy only after its own rule decides.
+	// Strip the legacy X-MailScript-Quarantine name too so upgrades from the
+	// pre-rebrand build cannot be spoofed through the old header.
+	s.data = stripHeader(s.data, "X-BetterProxy-Quarantine")
 	s.data = stripHeader(s.data, "X-MailScript-Quarantine")
 
 	// Parse with the full message parser rather than splitting on colons.
@@ -669,7 +672,7 @@ func (s *SMTPSession) processWithMailScript() (bool, bool, string) {
 
 	// Execute script
 	if err := s.proxy.executePolicy(ctx); err != nil {
-		log.Printf("MailScript error: %v", err)
+		log.Printf("BetterProxy error: %v", err)
 		s.replyCode = 451
 		return false, false, "Script execution error"
 	}

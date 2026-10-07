@@ -1,13 +1,13 @@
-# MailScript Filter Specification
+# BetterProxy Filter Specification
 
-Version 2.0. Applies to MailScript 2.x.
+Version 2.0. Applies to BetterProxy 2.x.
 
-This is the normative reference for the MailScript filtering language: the
+This is the normative reference for the BetterProxy filtering language: the
 execution model, the message model, and every builtin the engine exposes.
 
 The builtin list is generated from the live registration in
-`pkg/rules/engine.go`. Run `mailscript builtins` to print the set your binary
-actually supports, and `mailscript builtins --filter=dkim` to narrow it.
+`pkg/rules/engine.go`. Run `betterproxy builtins` to print the set your binary
+actually supports, and `betterproxy builtins --filter=dkim` to narrow it.
 
 ---
 
@@ -196,7 +196,7 @@ Rejected, and why:
 **Duplicate `From`.** Canonicalisation consumes header instances bottom-up, so
 an attacker who *prepends* a second `From` leaves the signed one in place and
 the signature still verifies — while the recipient's client displays the
-first. MailScript refuses to report `pass` for any message carrying more than
+first. BetterProxy refuses to report `pass` for any message carrying more than
 one `From` field. Signers should additionally oversign (list `from` twice in
 `h=`), but a verifier cannot assume they did.
 
@@ -410,10 +410,10 @@ runtime dependencies.
 ### 6.1 Training
 
 ```bash
-mailscript train --spam=spam.mbox --ham=ham.mbox --out=spam.json.gz
-mailscript train --label=phish:phish.mbox --label=bulk:bulk.mbox \
+betterproxy train --spam=spam.mbox --ham=ham.mbox --out=spam.json.gz
+betterproxy train --label=phish:phish.mbox --label=bulk:bulk.mbox \
   --label=legit:inbox.mbox --scorer=bayes --out=triage.json.gz
-mailscript train --spam=spam.mbox --ham=ham.mbox --scorer=robinson \
+betterproxy train --spam=spam.mbox --ham=ham.mbox --scorer=robinson \
   --feature-selection=chi2 --osb-window=5 --out=ordered.json.gz
 ```
 
@@ -431,7 +431,7 @@ features preserve token order through bounded sparse bigrams.
 ### 6.2 Use
 
 ```bash
-mailscript test --script=filter.star --model=spam.json.gz --eml=message.eml
+betterproxy test --script=filter.star --model=spam.json.gz --eml=message.eml
 ```
 
 ```python
@@ -454,7 +454,7 @@ a `vocab.txt` supplied with `--bert-vocab`. This produces the token IDs a
 transformer consumes and is useful as a feature extractor on its own, because
 WordPiece segments unknown words into meaningful subwords.
 
-No transformer inference ships with MailScript: it would require cgo and a
+No transformer inference ships with BetterProxy: it would require cgo and a
 model artefact, and would add tens of milliseconds per message. Implement the
 `ml.Embedder` interface to plug in a backend, then use `embed()` and
 `embed_similarity()`.
@@ -465,7 +465,7 @@ Additional algorithms (kNN, decision trees, random forests) are available
 behind a build tag:
 
 ```bash
-go build -tags golearn -o mailscript ./cmd/mailscript
+go build -tags golearn -o betterproxy ./cmd/betterproxy
 ```
 
 They are optional because GoLearn's learners need dense matrices, which do not
@@ -546,7 +546,7 @@ def evaluate():
     accept()
 ```
 
-262 builtins in the current release. `mailscript builtins` prints the exact
+262 builtins in the current release. `betterproxy builtins` prints the exact
 set for your binary.
 
 ### 8.1 Actions
@@ -704,7 +704,7 @@ after rule evaluation so authentication always sees the original wire bytes.
 
 ### 8.16 External analyzer sidecars
 
-`--analyzer name=URL` is repeatable. MailScript sends the original RFC 822
+`--analyzer name=URL` is repeatable. BetterProxy sends the original RFC 822
 message to `POST URL/v1/analyze` with `Content-Type: message/rfc822`. The
 default timeout is 30 seconds and the default input limit is 25 MiB; configure
 them with `--analyzer-timeout` and `--analyzer-max-bytes`.
@@ -732,7 +732,7 @@ The response is JSON:
 ```
 
 Verdict must be `clean`, `unknown`, `suspicious`, or `malicious`; score and
-finding confidence must be between 0 and 1. MailScript supplies the configured
+finding confidence must be between 0 and 1. BetterProxy supplies the configured
 analyzer name as each finding's source, validates the response, and treats an
 unavailable or malformed analyzer as unavailable rather than clean. Sidecars
 should run on a private interface under their own CPU, memory, recursion, and
@@ -740,14 +740,14 @@ execution limits. Configured analyzers run concurrently, while their results
 remain in configuration order so logs and policy output are deterministic.
 
 The generic contract does not bundle capa, oletools, an OCR engine, or a
-sandbox into the MailScript binary. Deploy those tools as separately confined
+sandbox into the BetterProxy binary. Deploy those tools as separately confined
 services and translate their native output into this response. This separation
 keeps optional native dependencies and untrusted document parsers outside the
 SMTP process.
 
 ### 8.17 Legacy
 
-Retained for compatibility with MailScript 1.x scripts:
+Retained for compatibility with BetterProxy 1.x scripts:
 `get_recipient_did()` `get_content_filter()` `get_content_filter_name()`
 `get_content_filter_rules()` `set_content_filter_rules(rule)`
 
@@ -755,7 +755,7 @@ Retained for compatibility with MailScript 1.x scripts:
 
 ## 9. Compatibility
 
-MailScript 1.x scripts run unchanged. Every 1.x builtin is still registered
+BetterProxy 1.x scripts run unchanged. Every 1.x builtin is still registered
 with its original signature.
 
 Two behaviour changes could affect an existing script:
@@ -836,7 +836,7 @@ def evaluate():
         return
 
     if get_score() >= 5.0:
-        add_header("X-MailScript-Suspicious", "score=" + str(int(get_score())))
+        add_header("X-BetterProxy-Suspicious", "score=" + str(int(get_score())))
 
     # 10. Route by sender class.
     if is_bulk():
