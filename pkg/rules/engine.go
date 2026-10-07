@@ -642,6 +642,32 @@ func (e *scriptEnv) headerBuiltins() starlark.StringDict {
 			return starlark.None
 		}),
 
+		// remove_header_prefix drops every header whose name starts with the
+		// given (case-insensitive) prefix, including script-added ones. Use it
+		// to strip a whole forgeable namespace (e.g. "X-BetterSpam-") before
+		// stamping trusted verdict headers. Returns the count removed.
+		"remove_header_prefix": unary("remove_header_prefix", "prefix", func(prefix string) starlark.Value {
+			lower := strings.ToLower(prefix)
+			removed := 0
+			seen := make(map[string]bool)
+			for _, h := range msg.HeaderList {
+				key := strings.ToLower(h.Name)
+				if seen[key] || !strings.HasPrefix(key, lower) {
+					continue
+				}
+				seen[key] = true
+				msg.RemoveHeader(h.Name)
+				msg.Actions = append(msg.Actions, "remove_header:"+h.Name)
+				removed++
+			}
+			for name := range msg.ModifiedHeaders {
+				if strings.HasPrefix(strings.ToLower(name), lower) {
+					delete(msg.ModifiedHeaders, name)
+				}
+			}
+			return starlark.MakeInt(removed)
+		}),
+
 		// protect_metadata applies a named privacy policy at the point a rule
 		// decides the message is leaving a trust boundary. It intentionally
 		// records removals instead of mutating the parsed message, so earlier

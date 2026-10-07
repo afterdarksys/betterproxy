@@ -546,7 +546,7 @@ def evaluate():
     accept()
 ```
 
-270 builtins in the current release. `betterproxy builtins` prints the exact
+271 builtins in the current release. `betterproxy builtins` prints the exact
 set for your binary.
 
 ### 8.1 Actions

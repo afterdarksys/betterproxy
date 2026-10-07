@@ -14,12 +14,12 @@
 #      (API key via env BETTERPROXY_CLOUD_TOKEN)
 
 def evaluate():
-    # 1. Strip any inbound verdict markup so a sender cannot forge a clean
-    #    verdict. We only trust headers we stamp ourselves, below.
-    remove_header("X-BetterSpam-Status")
-    remove_header("X-BetterPhish-Verdict")
-    remove_header("X-BetterProxy-Action")
-    remove_header("X-BetterProxy-Id")
+    # 1. Strip the ENTIRE verdict namespaces so a sender cannot forge any
+    #    header we (or downstream filters) might trust — not just the names we
+    #    restamp below. We only trust headers we stamp ourselves, afterward.
+    remove_header_prefix("X-BetterSpam-")
+    remove_header_prefix("X-BetterPhish-")
+    remove_header_prefix("X-BetterProxy-")
 
     if not cloud_available():
         add_header("X-BetterProxy-Cloud", "disabled")
@@ -47,6 +47,7 @@ def evaluate():
                ("phish" if v["is_phishing"] else "clean") +
                ", confidence=" + str(v["confidence"]))
     add_header("X-BetterProxy-Action", v["action"])
+    add_header("X-BetterProxy-Cloud", "ok")
 
     # 5. Contribute to the betterphish feed (async, best-effort).
     betterphish_submit()

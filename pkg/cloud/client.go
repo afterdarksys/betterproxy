@@ -67,10 +67,16 @@ type Config struct {
 	AllowPrivateHosts bool          // permit loopback/private targets (dev/testing)
 }
 
+// maxInFlightSubmits bounds concurrent async feed enrichments so a slow or hung
+// betterphish endpoint cannot accumulate unbounded goroutines (each holding a
+// full message copy) decoupled from the proxy's own session limiter.
+const maxInFlightSubmits = 64
+
 // Client talks to the betterspam/betterphish cloud.
 type Client struct {
 	cfg  Config
 	http *http.Client
+	sem  chan struct{} // bounds SubmitAsync fan-out
 }
 
 // New validates cfg and builds an SSRF-hardened Client.
@@ -88,7 +94,11 @@ func New(cfg Config) (*Client, error) {
 	default:
 		return nil, fmt.Errorf("cloud: unknown privacy mode %q", cfg.PrivacyMode)
 	}
-	return &Client{cfg: cfg, http: newHardenedClient(cfg.Timeout, cfg.AllowPrivateHosts)}, nil
+	return &Client{
+		cfg:  cfg,
+		http: newHardenedClient(cfg.Timeout, cfg.AllowPrivateHosts),
+		sem:  make(chan struct{}, maxInFlightSubmits),
+	}, nil
 }
 
 // PrivacyMode reports the configured privacy mode.
@@ -238,7 +248,16 @@ func (c *Client) SubmitAsync(req CheckRequest) {
 	if c.cfg.SubmitURL == "" || c.cfg.PrivacyMode == PrivacyHash {
 		return
 	}
+	select {
+	case c.sem <- struct{}{}:
+	default:
+		return // at capacity: shed enrichment rather than pile up goroutines
+	}
 	go func() {
+		defer func() { <-c.sem }()
+		// A panic in this detached goroutine would otherwise crash the whole
+		// process (and every SMTP connection) — the worst fail-open violation.
+		defer func() { _ = recover() }()
 		ctx, cancel := context.WithTimeout(context.Background(), c.cfg.Timeout)
 		defer cancel()
 		_ = c.Submit(ctx, req)
@@ -255,7 +274,7 @@ func (c *Client) postJSON(ctx context.Context, url string, body, out interface{}
 		return fmt.Errorf("cloud: new request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "betterproxy/0.1")
+	req.Header.Set("User-Agent", "betterproxy")
 	if c.cfg.APIKey != "" {
 		req.Header.Set("X-API-Key", c.cfg.APIKey)
 	}
@@ -314,8 +333,12 @@ func RawSHA256(raw []byte) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// assembleRaw rejoins a header block and body with exactly one blank-line
-// separator. Exposed for callers that only hold the split parts.
+// AssembleRaw rejoins a header block and body with exactly one blank-line
+// separator. It always normalizes the separator to CRLF, so for an LF-only
+// source message the result is not byte-identical to the wire form. This only
+// affects the cloud payload (hashing/correlation); delivered mail is never
+// rebuilt from this, so DKIM on pass-through is unaffected. Do not rely on
+// cloud-side signature re-verification over these bytes.
 func AssembleRaw(headerBlock, body []byte) []byte {
 	out := append([]byte{}, headerBlock...)
 	switch {
